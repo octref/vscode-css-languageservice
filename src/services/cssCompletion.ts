@@ -10,6 +10,8 @@ import * as languageFacts from './languageFacts';
 import * as strings from '../utils/strings';
 import { findFirst } from '../utils/arrays';
 import { TextDocument, Position, CompletionList, CompletionItem, CompletionItemKind, Range, TextEdit, InsertTextFormat } from 'vscode-languageserver-types';
+import * as emmetHelper from '../emmet-helper/emmet-helper';
+import { EmmetSettings } from '../cssLanguageService';
 
 import * as nls from 'vscode-nls';
 const localize = nls.loadMessageBundle();
@@ -27,9 +29,11 @@ export class CSSCompletion {
 	symbolContext: Symbols;
 	defaultReplaceRange: Range;
 	nodePath: nodes.Node[];
+	emmetSettings: EmmetSettings;
 
 	constructor(variablePrefix: string = null) {
 		this.variablePrefix = variablePrefix;
+		this.emmetSettings = {};
 	}
 
 	private getSymbolContext(): Symbols {
@@ -37,6 +41,13 @@ export class CSSCompletion {
 			this.symbolContext = new Symbols(this.styleSheet);
 		}
 		return this.symbolContext;
+	}
+
+	public updateEmmetSettings(updatedEmmetSettings: EmmetSettings) {
+		if (this.emmetSettings['extensionsPath'] !== updatedEmmetSettings['extensionsPath']) {
+			emmetHelper.updateExtensionsPath(updatedEmmetSettings['extensionsPath']);
+		}
+		this.emmetSettings = updatedEmmetSettings;
 	}
 
 	public doComplete(document: TextDocument, position: Position, styleSheet: nodes.Stylesheet): CompletionList {
@@ -54,6 +65,11 @@ export class CSSCompletion {
 				let node = this.nodePath[i];
 				if (node instanceof nodes.Property) {
 					this.getCompletionsForDeclarationProperty(node.getParent() as nodes.Declaration, result);
+					const emmetResults = emmetHelper.doComplete(document, position, document.languageId, this.emmetSettings);
+					if (emmetResults && emmetResults.items){
+						result.isIncomplete = true;
+						result.items.push(...emmetResults.items);
+					}
 				} else if (node instanceof nodes.Expression) {
 					this.getCompletionsForExpression(<nodes.Expression>node, result);
 				} else if (node instanceof nodes.SimpleSelector) {

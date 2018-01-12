@@ -69,6 +69,7 @@ export interface LanguageService {
 	findDocumentColors(document: TextDocument, stylesheet: Stylesheet): ColorInformation[];
 	getColorPresentations(document: TextDocument, stylesheet: Stylesheet, color: Color, range: Range): ColorPresentation[];
 	doRename(document: TextDocument, position: Position, newName: string, stylesheet: Stylesheet): WorkspaceEdit;
+	updateEmmetSettings(updatedEmmetSettings: EmmetSettings): void;
 }
 
 export type LintSettings = { [key: string]: string };
@@ -78,6 +79,13 @@ export interface LanguageSettings {
 	lint?: LintSettings;
 }
 
+export interface EmmetSettings {
+	preferences?: { [key: string]: any };
+	showSuggestionsAsSnippets?: boolean;
+	variables?: { [key: string]: string };
+	extensionsPath?: string;
+	showExpandedAbbreviation?: string;
+}
 
 function createFacade(parser: Parser, completion: CSSCompletion, hover: CSSHover, navigation: CSSNavigation, codeActions: CSSCodeActions, validation: CSSValidation) {
 	return {
@@ -95,6 +103,7 @@ function createFacade(parser: Parser, completion: CSSCompletion, hover: CSSHover
 		findDocumentColors: navigation.findDocumentColors.bind(navigation),
 		getColorPresentations: navigation.getColorPresentations.bind(navigation),
 		doRename: navigation.doRename.bind(navigation),
+		updateEmmetSettings: completion.updateEmmetSettings.bind(completion)
 	};
 }
 

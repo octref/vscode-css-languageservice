@@ -31,8 +31,8 @@
   "scripts": {
     "prepublish": "npm run test",
     "postpublish": "node ./build/post-publish.js",
-    "copy-data": "cpy ./src/data/* ./lib/data",
-    "compile": "tsc -p ./src && mkdirp ./lib/data && npm run copy-data",
+    "copy-data": "cpy ./src/data/* ./lib/data && cpy ./src/emmet-helper/* ./lib/emmet-helper",
+    "compile": "tsc -p ./src && mkdirp ./lib/data && mkdirp ./lib/emmet-helper && npm run copy-data",
     "watch": "npm run copy-data && tsc -w -p ./src",
     "test": "npm run compile && mocha && npm run lint",
     "coverage": "node ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --ui tdd -R spec -t 5000",

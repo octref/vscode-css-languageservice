@@ -9,6 +9,7 @@ import * as cssLanguageService from '../../cssLanguageService';
 
 import { CompletionList, TextDocument, TextEdit, Position, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver-types';
 import { applyEdits } from '../textEditSupport';
+import { EmmetSettings } from '../../cssLanguageService';
 
 export interface ItemDescription {
 	label: string;
@@ -54,11 +55,14 @@ export let assertCompletion = function (completions: CompletionList, expected: I
 
 suite('CSS - Completion', () => {
 
-	let testCompletionFor = function (value: string, expected: { count?: number, items?: ItemDescription[] }) {
+	let testCompletionFor = function (value: string, expected: { count?: number, items?: ItemDescription[] }, emmetSettings?: EmmetSettings) {
 		let offset = value.indexOf('|');
 		value = value.substr(0, offset) + value.substr(offset + 1);
 
 		let ls = cssLanguageService.getCSSLanguageService();
+		if (emmetSettings) {
+			ls.updateEmmetSettings(emmetSettings);
+		}
 
 		let document = TextDocument.create('test://test/test.css', 'css', 0, value);
 		let position = Position.create(0, offset);
@@ -152,6 +156,24 @@ suite('CSS - Completion', () => {
 				{ label: ':hover', resultText: '.a:hover ' },
 				{ label: '::after', resultText: '.a::after ' }
 			]
+		});
+	});
+	test('emmet', () => {
+		testCompletionFor('body { m10|', {
+			items: [
+				{ label: 'margin: 10px;', resultText: 'body { margin: 10px;' }
+			]
+		});
+
+		testCompletionFor('body { m10|', {
+			items: [
+				{ label: 'margin: 10pt;;', resultText: 'body { margin: 10pt;;' }
+			]
+		},{
+			preferences: {
+				'css.intUnit': 'pt',
+				'css.propertyEnd': ';;'
+			}
 		});
 	});
 	test('properties', function (): any {
